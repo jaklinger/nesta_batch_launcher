@@ -23,6 +23,11 @@ class Launcher(ABC):
         self.n_exec = 0
         self.n_success = 0
         self.n_fail = 0
+
+        self.job_name = email_address.split("@")[0]+"_"+self.timestamp
+        self.job_name = self.job_name.replace(".","-")
+        print("Will launch with base name",self.job_name)
+
         self.batch = batch
         self.env_files = " ".join(env_files)
         self.aws_id = exec_and_read(["aws --profile default configure"
@@ -41,9 +46,9 @@ class Launcher(ABC):
         if self.batch:
             shutil.copy("/home/ec2-user/bash_scripts/prepare_environment.sh",
                         os.getcwd())
-            out = check_output(["./prepare_environment.sh "+self.env_files], shell=True)
+            batch_file_timestamp = exec_and_read(["./prepare_environment.sh "+
+                                                  self.env_files])
             os.remove("prepare_environment.sh")
-            batch_file_timestamp = out.decode("utf-8").split("\n")[-2]
             client = boto3.client('batch')            
 
         for i, params in enumerate(params_collection):
@@ -62,9 +67,9 @@ class Launcher(ABC):
                        {"name":"URL_ID_NUMBER","value":str(params["id"])}]
 
                 # Should generate a unique job name, with the batch number included
-                response = client.submit_job(jobDefinition='test_definition',
-                                             jobName='test_submission',
-                                             jobQueue='HighPriority',
+                response = client.submit_job(jobName=self.job_name+"_"+str(i),
+                                             jobDefinition='test_definition', # Docker
+                                             jobQueue='HighPriority',         # CPU env
                                              containerOverrides={"environment":env})
                 if i % 1000 == 0:
                     print("%d: %s" % (i," so far"))
