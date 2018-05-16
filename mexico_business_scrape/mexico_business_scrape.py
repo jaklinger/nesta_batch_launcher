@@ -48,9 +48,8 @@ class MexicoBizLauncher(Launcher):
 
 
 if __name__ == "__main__":
-    # NEED THIS https://docs.aws.amazon.com/batch/latest/userguide/job_definitions.html
+    env_files=["/home/ec2-user/data_utils/webscraping",
+               "/home/ec2-user/db_config/innovation-mapping-tier0.config"]
     mbl = MexicoBizLauncher(email_address="joel.klinger@nesta.org.uk", 
-                            env_files=["/home/ec2-user/data_utils/webscraping",
-                                       "/home/ec2-user/db_config/innovation-mapping-tier0.config"],
-                            batch=True)
+                            env_files=env_files, batch=True)
     mbl.run() #max_runs=10)
